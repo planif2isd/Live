@@ -15,13 +15,15 @@ const chatLog = document.getElementById('chatLog');
 const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatCount = document.getElementById('chatCount');
+const guestRow = document.getElementById('guestRow');
 
 let localStream = null;
 let peer = null;
 let live = false;
-const calls = new Map(); // viewerId -> MediaConnection
+const calls = new Map(); // viewerId -> MediaConnection (diffusion principale vers ce spectateur)
 const conns = new Map(); // viewerId -> DataConnection
 const pseudos = new Map(); // viewerId -> pseudo
+const guests = new Map(); // viewerId -> { call, stream, pseudo, forwards: Map(otherViewerId -> MediaConnection) }
 
 function addChatLine(html, cls) {
   const line = document.createElement('div');
@@ -50,6 +52,54 @@ function broadcastToViewers(msg, exceptId) {
 function broadcastViewerCount() {
   broadcastToViewers({ type: 'viewer-count', count: conns.size });
   chatCount.textContent = conns.size;
+}
+
+// --- tuiles des invites (spectateurs qui ont active leur camera) ---
+function upsertGuestTile(id, stream, label) {
+  let tile = document.getElementById('guest-' + id);
+  if (!tile) {
+    tile = document.createElement('div');
+    tile.className = 'guest-tile';
+    tile.id = 'guest-' + id;
+    const v = document.createElement('video');
+    v.autoplay = true;
+    v.playsInline = true;
+    const tag = document.createElement('div');
+    tag.className = 'guest-label';
+    tile.appendChild(v);
+    tile.appendChild(tag);
+    guestRow.appendChild(tile);
+  }
+  tile.querySelector('video').srcObject = stream;
+  tile.querySelector('.guest-label').textContent = label;
+}
+function removeGuestTile(id) {
+  const tile = document.getElementById('guest-' + id);
+  if (tile) tile.remove();
+}
+
+// Relaie le flux camera d'un invite vers tous les AUTRES spectateurs deja connectes.
+function forwardGuestToViewers(guestId, stream, pseudo) {
+  const entry = guests.get(guestId);
+  conns.forEach((_conn, viewerId) => {
+    if (viewerId === guestId) return;
+    const forwardCall = peer.call(viewerId, stream, { metadata: { kind: 'guest', guestId, pseudo } });
+    entry.forwards.set(viewerId, forwardCall);
+  });
+}
+function forwardAllActiveGuestsTo(viewerId) {
+  guests.forEach((entry, guestId) => {
+    if (guestId === viewerId) return;
+    const forwardCall = peer.call(viewerId, entry.stream, { metadata: { kind: 'guest', guestId, pseudo: entry.pseudo } });
+    entry.forwards.set(viewerId, forwardCall);
+  });
+}
+function stopGuest(guestId) {
+  const entry = guests.get(guestId);
+  if (!entry) return;
+  entry.forwards.forEach((c) => c.close());
+  guests.delete(guestId);
+  removeGuestTile(guestId);
 }
 
 function setSource(stream) {
@@ -115,9 +165,10 @@ btnGoLive.addEventListener('click', () => {
       const pseudo = (conn.metadata && conn.metadata.pseudo) || 'Spectateur';
       pseudos.set(conn.peer, pseudo);
 
-      const call = peer.call(conn.peer, localStream);
+      const call = peer.call(conn.peer, localStream, { metadata: { kind: 'main' } });
       calls.set(conn.peer, call);
       updateViewersLine();
+      forwardAllActiveGuestsTo(conn.peer);
 
       const joinMsg = { type: 'system', text: `${pseudo} a rejoint le direct.` };
       addChatLine(escapeHtml(joinMsg.text), 'system');
@@ -141,6 +192,12 @@ btnGoLive.addEventListener('click', () => {
       calls.delete(conn.peer);
       conns.delete(conn.peer);
       pseudos.delete(conn.peer);
+      stopGuest(conn.peer);
+      // Ce spectateur ne doit plus recevoir les flux des autres invites.
+      guests.forEach((entry) => {
+        const fwd = entry.forwards.get(conn.peer);
+        if (fwd) { fwd.close(); entry.forwards.delete(conn.peer); }
+      });
       updateViewersLine();
 
       const leaveMsg = { type: 'system', text: `${pseudo} a quitte le direct.` };
@@ -148,6 +205,22 @@ btnGoLive.addEventListener('click', () => {
       broadcastToViewers(leaveMsg);
       broadcastViewerCount();
     });
+  });
+
+  // Un spectateur qui active sa camera nous appelle : on l'affiche localement
+  // et on relaie son flux vers tous les autres spectateurs connectes.
+  peer.on('call', (call) => {
+    if (call.metadata && call.metadata.kind === 'guest') {
+      const guestId = call.peer;
+      const pseudo = call.metadata.pseudo || pseudos.get(guestId) || 'Invite';
+      call.answer();
+      call.on('stream', (stream) => {
+        guests.set(guestId, { call, stream, pseudo, forwards: new Map() });
+        upsertGuestTile(guestId, stream, pseudo);
+        forwardGuestToViewers(guestId, stream, pseudo);
+      });
+      call.on('close', () => stopGuest(guestId));
+    }
   });
 
   peer.on('error', (err) => {
@@ -165,6 +238,9 @@ function stopBroadcast() {
   broadcastToViewers({ type: 'system', text: 'Le diffuseur a mis fin au direct.' });
   calls.forEach((call) => call.close());
   calls.clear();
+  guests.forEach((entry) => { entry.forwards.forEach((c) => c.close()); entry.call.close(); });
+  guests.clear();
+  guestRow.innerHTML = '';
   conns.clear();
   pseudos.clear();
   if (peer) peer.destroy();

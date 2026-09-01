@@ -134,8 +134,10 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
   inset: 0;
   background: rgba(20, 23, 28, 0.92);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
+  padding-top: 12vh;
+  overflow-y: auto;
   z-index: 20;
 }
 .pseudo-card {
@@ -216,3 +218,59 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
     border-top: 1px solid #2a2f38;
   }
 }
+
+/* --- guest camera tiles --- */
+.guest-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guest-tile {
+  position: relative;
+  width: 110px;
+  aspect-ratio: 16/9;
+  background: #000;
+  border-radius: 6px;
+  overflow: hidden;
+  border: 1px solid #2a2f38;
+  flex-shrink: 0;
+}
+.guest-tile video { width: 100%; height: 100%; object-fit: cover; display: block; }
+.guest-tile .guest-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: linear-gradient(0deg, rgba(0,0,0,0.75), transparent);
+  color: #fff;
+  font-size: 10px;
+  padding: 3px 5px;
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.guest-row-floating {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  z-index: 12;
+  max-width: calc(100% - 2rem);
+}
+
+.cam-toggle {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 15;
+  background: rgba(20, 23, 28, 0.75);
+  backdrop-filter: blur(6px);
+  border: 1px solid #3a414c;
+  border-radius: 999px;
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 0.8rem;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+}
+.cam-toggle.active { background: var(--signal); border-color: var(--signal); }

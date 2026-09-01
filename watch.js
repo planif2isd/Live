@@ -3,6 +3,10 @@ const message = document.getElementById('message');
 const messageTitle = document.getElementById('messageTitle');
 const messageBody = document.getElementById('messageBody');
 const hud = document.getElementById('hud');
+const guestRow = document.getElementById('guestRow');
+const camToggle = document.getElementById('camToggle');
+const unmuteBtn = document.getElementById('unmuteBtn');
+let soundEnabled = false;
 
 const pseudoGate = document.getElementById('pseudoGate');
 const pseudoForm = document.getElementById('pseudoForm');
@@ -13,8 +17,6 @@ const chatForm = document.getElementById('chatForm');
 const chatInput = document.getElementById('chatInput');
 const chatCount = document.getElementById('chatCount');
 
-// Palette inspiree des pseudos colores type Twitch : chaque pseudo garde
-// toujours la meme couleur, calculee a partir de son nom.
 const NAME_COLORS = ['#FF6B6B', '#4ECDC4', '#FFD93D', '#6BCB77', '#4D96FF', '#C780FA', '#FF922B', '#20C997'];
 function colorFor(name) {
   let hash = 0;
@@ -35,6 +37,20 @@ function showVideo() {
   video.style.display = 'block';
 }
 
+// Les mobiles bloquent l'autoplay avec son : on demarre toujours coupe,
+// et on propose un bouton pour activer le son (toujours autorise, car
+// declenche par un geste de l'utilisateur).
+function playSafely(v) {
+  v.play().catch(() => { /* ignore, l'utilisateur pourra rejouer via le bouton son */ });
+}
+unmuteBtn.addEventListener('click', () => {
+  soundEnabled = true;
+  video.muted = false;
+  playSafely(video);
+  guestRow.querySelectorAll('video').forEach((v) => { v.muted = false; });
+  unmuteBtn.style.display = 'none';
+});
+
 function addChatLine(html, cls) {
   const line = document.createElement('div');
   line.className = 'chat-msg' + (cls ? ' ' + cls : '');
@@ -49,11 +65,41 @@ function chatName(pseudo, extra) {
   return `<span class="who tag" style="color:${colorFor(pseudo)}">${escapeHtml(pseudo)}${extra || ''}</span>`;
 }
 
+// --- tuiles des invites (autres spectateurs qui ont active leur camera) ---
+function upsertGuestTile(id, stream, label) {
+  let tile = document.getElementById('guest-' + id);
+  if (!tile) {
+    tile = document.createElement('div');
+    tile.className = 'guest-tile';
+    tile.id = 'guest-' + id;
+    const v = document.createElement('video');
+    v.autoplay = true;
+    v.playsInline = true;
+    const tag = document.createElement('div');
+    tag.className = 'guest-label';
+    tile.appendChild(v);
+    tile.appendChild(tag);
+    guestRow.appendChild(tile);
+  }
+  tile.querySelector('video').srcObject = stream;
+  const v = tile.querySelector('video');
+  v.muted = !soundEnabled;
+  playSafely(v);
+  tile.querySelector('.guest-label').textContent = label;
+}
+function removeGuestTile(id) {
+  const tile = document.getElementById('guest-' + id);
+  if (tile) tile.remove();
+}
+
 const params = new URLSearchParams(window.location.search);
 const broadcasterId = params.get('room');
 
 let pseudo = '';
 let dataConn = null;
+let peer = null;
+let myStream = null;
+let myCall = null;
 
 if (!broadcasterId) {
   pseudoGate.style.display = 'none';
@@ -63,6 +109,7 @@ if (!broadcasterId) {
     e.preventDefault();
     pseudo = pseudoInput.value.trim().slice(0, 24) || 'Spectateur';
     pseudoGate.style.display = 'none';
+    camToggle.style.display = 'block';
     startConnection();
   });
 }
@@ -70,7 +117,7 @@ if (!broadcasterId) {
 function startConnection() {
   showMessage('En attente du diffuseur', "La connexion va s'etablir automatiquement.");
 
-  const peer = new Peer();
+  peer = new Peer();
 
   peer.on('open', () => {
     dataConn = peer.connect(broadcasterId, { metadata: { pseudo } });
@@ -94,14 +141,28 @@ function startConnection() {
     });
   });
 
+  // Le diffuseur nous appelle : soit avec le flux principal, soit avec le
+  // flux camera d'un autre spectateur (relaye via le diffuseur).
   peer.on('call', (call) => {
-    call.answer(); // on ne renvoie pas de flux, on ne fait que recevoir
+    const kind = call.metadata && call.metadata.kind;
+    call.answer();
     call.on('stream', (stream) => {
-      video.srcObject = stream;
-      showVideo();
+      if (kind === 'guest') {
+        const label = (call.metadata && call.metadata.pseudo) || 'Invite';
+        upsertGuestTile(call.metadata.guestId, stream, label);
+      } else {
+        video.srcObject = stream;
+        showVideo();
+        playSafely(video);
+        if (!soundEnabled) unmuteBtn.style.display = 'block';
+      }
     });
     call.on('close', () => {
-      showMessage('Diffusion terminee', 'Le diffuseur a mis fin au direct.');
+      if (kind === 'guest') {
+        removeGuestTile(call.metadata.guestId);
+      } else {
+        showMessage('Diffusion terminee', 'Le diffuseur a mis fin au direct.');
+      }
     });
   });
 
@@ -113,6 +174,36 @@ function startConnection() {
   });
 }
 
+// --- activer/couper sa propre camera pour rejoindre le direct en tant qu'invite ---
+camToggle.addEventListener('click', async () => {
+  if (myStream) {
+    stopOwnCamera();
+    return;
+  }
+  try {
+    myStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+  } catch (err) {
+    alert("Impossible d'acceder a la camera/micro: " + err.message);
+    return;
+  }
+  upsertGuestTile('self', myStream, `${pseudo} (toi)`);
+  document.querySelector('#guest-self video').muted = true;
+  camToggle.textContent = 'Couper ma camera';
+  camToggle.classList.add('active');
+  myCall = peer.call(broadcasterId, myStream, { metadata: { kind: 'guest', pseudo } });
+  myCall.on('close', stopOwnCamera);
+});
+
+function stopOwnCamera() {
+  if (myStream) myStream.getTracks().forEach((t) => t.stop());
+  if (myCall) myCall.close();
+  myStream = null;
+  myCall = null;
+  removeGuestTile('self');
+  camToggle.textContent = 'Activer ma camera';
+  camToggle.classList.remove('active');
+}
+
 chatForm.addEventListener('submit', (e) => {
   e.preventDefault();
   const text = chatInput.value.trim();
@@ -120,4 +211,8 @@ chatForm.addEventListener('submit', (e) => {
   dataConn.send({ type: 'chat', text });
   addChatLine(`${chatName(pseudo, ' (toi)')}: ${escapeHtml(text)}`);
   chatInput.value = '';
+});
+
+window.addEventListener('beforeunload', () => {
+  if (myStream) stopOwnCamera();
 });
