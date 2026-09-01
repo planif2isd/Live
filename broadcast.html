@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Console de diffusion</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  body { display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+  .layout {
+    display: flex;
+    gap: 1.4rem;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1000px;
+  }
+  .console { width: 100%; max-width: 620px; }
+  .chat-panel { width: 320px; height: 560px; flex-shrink: 0; }
+  @media (max-width: 860px) {
+    .layout { flex-direction: column; align-items: center; }
+    .chat-panel { width: 100%; max-width: 620px; height: 380px; }
+  }
+  .eyebrow-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.25rem; }
+  h1 { font-size: 1.6rem; }
+  .sub { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.35rem; }
+
+  .frame {
+    background: #000; border-radius: var(--radius); overflow: hidden;
+    aspect-ratio: 16/9; position: relative; border: 1px solid #2a2f38;
+  }
+  video { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .frame-empty {
+    position: absolute; inset: 0; display: flex; align-items: center;
+    justify-content: center; color: #4b5361; font-size: 0.9rem; text-align: center; padding: 1rem;
+  }
+
+  .source-row { display: flex; gap: 0.6rem; margin: 1.1rem 0; }
+  .source-row button { flex: 1; }
+  .source-row .active { outline: 2px solid var(--signal); outline-offset: -2px; }
+
+  .actions { display: flex; gap: 0.6rem; margin-top: 1.1rem; }
+  .actions button { flex: 1; }
+
+  .link-box {
+    display: none; margin-top: 1.4rem; background: var(--surface);
+    border: 1px solid #2a2f38; border-radius: var(--radius); padding: 1rem 1.1rem;
+  }
+  .link-box.show { display: block; }
+  .link-label { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .link-row { display: flex; gap: 0.5rem; align-items: center; }
+  .link-row input {
+    flex: 1; background: var(--surface-alt); border: 1px solid #3a414c;
+    border-radius: 6px; color: var(--text); padding: 0.6rem 0.7rem;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;
+  }
+  .viewers-line { margin-top: 0.9rem; color: var(--text-muted); font-size: 0.85rem; font-family: 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+  <div class="layout">
+  <div class="console">
+    <div class="eyebrow-row">
+      <h1>Console de diffusion</h1>
+      <span class="tally" id="tally"><span class="tally-dot"></span><span id="tallyText">HORS ANTENNE</span></span>
+    </div>
+    <p class="sub">Choisis ta source, passe en direct, partage le lien. Tout se passe dans ce navigateur, il doit rester ouvert pendant le direct.</p>
+
+    <div class="frame">
+      <video id="preview" autoplay muted playsinline></video>
+      <div class="frame-empty" id="frameEmpty">Aucune source selectionnee</div>
+    </div>
+
+    <div class="source-row">
+      <button class="btn-secondary" id="btnCam">Camera</button>
+      <button class="btn-secondary" id="btnScreen">Ecran</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-primary" id="btnGoLive" disabled>Passer en direct</button>
+      <button class="btn-secondary" id="btnStop" disabled>Arreter</button>
+    </div>
+
+    <div class="link-box" id="linkBox">
+      <div class="link-label">Lien a partager</div>
+      <div class="link-row">
+        <input type="text" id="linkInput" readonly>
+        <button class="btn-secondary" id="btnCopy">Copier</button>
+      </div>
+      <div class="viewers-line" id="viewersLine">0 spectateur connecte</div>
+    </div>
+  </div>
+
+  <div class="chat chat-panel">
+    <div class="chat-head"><span>Chat du direct</span><span id="chatCount">0</span></div>
+    <div class="chat-log" id="chatLog"></div>
+    <form class="chat-form" id="chatForm">
+      <input type="text" id="chatInput" placeholder="Ecrire un message..." maxlength="300" autocomplete="off">
+      <button class="btn-primary" type="submit">Envoyer</button>
+    </form>
+  </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="broadcast.js"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diffusion en direct</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  html, body { height: 100%; background: #000; overflow: hidden; }
+  .stage { position: relative; width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+  video { width: 100%; height: 100%; object-fit: contain; background: #000; }
+  .hud {
+    position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.6rem;
+    background: rgba(20, 23, 28, 0.7); backdrop-filter: blur(6px); border-radius: 999px; padding: 0.5rem 0.9rem;
+  }
+  .message { color: var(--text-muted); font-family: 'Inter', sans-serif; text-align: center; max-width: 320px; padding: 1rem; }
+  .message .display { color: var(--text); font-size: 1.2rem; display: block; margin-bottom: 0.4rem; }
+</style>
+</head>
+<body>
+  <div class="watch-app">
+    <div class="stage">
+      <video id="remoteVideo" autoplay playsinline></video>
+      <div class="message" id="message" style="display:none;">
+        <span class="display" id="messageTitle">En attente du diffuseur</span>
+        <span id="messageBody">La connexion va s'etablir automatiquement.</span>
+      </div>
+      <div class="hud" id="hud" style="display:none;">
+        <span class="tally live"><span class="tally-dot"></span><span>DIRECT</span></span>
+      </div>
+
+      <div class="pseudo-gate" id="pseudoGate">
+        <div class="pseudo-card">
+          <h2>Rejoindre le direct</h2>
+          <p>Choisis un pseudo pour regarder le flux et participer au chat.</p>
+          <form id="pseudoForm">
+            <input type="text" id="pseudoInput" placeholder="Ton pseudo" maxlength="24" autocomplete="off" required>
+            <button class="btn-primary" type="submit">Rejoindre</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="chat chat-side">
+      <div class="chat-head">
+        <span>Chat du direct</span>
+        <span class="viewer-count" id="chatCount">0 spectateur</span>
+      </div>
+      <div class="chat-log" id="chatLog"></div>
+      <form class="chat-form" id="chatForm">
+        <input type="text" id="chatInput" placeholder="Ecrire un message..." maxlength="300" autocomplete="off">
+        <button class="btn-primary" type="submit">Envoyer</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="watch.js"></script>
+</body>
+</html>
