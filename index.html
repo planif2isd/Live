@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon Pellet</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--o:#ff5a14;--o2:#ff7a40;--soft:#ffe9de;--pk:#ffb8dc;--bl:#b8c6ff;--gr:#a6f56a;--ye:#ffe27a;--tx:#1d1a17;--mu:#7a6f68;--cream:#f8f1ec;--r:26px}
+*{box-sizing:border-box}
+html,body{margin:0;background:#fff;color:var(--tx);font-family:Fredoka,"Varela Round",Nunito,system-ui,sans-serif;font-size:17px}
+.wrap{max-width:1000px;margin:0 auto;padding:18px}
+.bar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+h1{margin:0;font-size:1.9rem;font-weight:600;color:var(--o);line-height:1.1}
+h2{margin:22px 4px 12px;font-size:1.35rem;font-weight:500}
+.sub{font-size:.95rem}
+.badge{background:var(--o);color:#fff;border-radius:18px;padding:12px 20px;font-size:1.5rem;font-weight:600}
+.tabs{display:flex;background:var(--soft);border-radius:99px;padding:6px;margin-bottom:16px;max-width:420px}
+.tabs button{flex:1;border:0;background:none;font:inherit;font-weight:500;color:var(--o);padding:12px;border-radius:99px;cursor:pointer}
+.tabs button.on{background:var(--o);color:#fff}
+.top{display:grid;grid-template-columns:1.3fr 1fr;gap:14px}
+.hero{background:var(--o);color:#fff;border-radius:var(--r);padding:22px}
+.hero .t{font-size:1.4rem;font-weight:500}
+.hero .big{font-size:3.6rem;font-weight:600;line-height:1.1}
+.gauge{height:16px;border-radius:99px;background:rgba(255,255,255,.28);margin:12px 0 8px;overflow:hidden}
+.gauge i{display:block;height:100%;background:#fff;border-radius:99px;transition:width .4s}
+.cta{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.cta button{flex:1;min-width:150px;border:0;border-radius:18px;padding:16px;font:inherit;font-weight:600;font-size:1.05rem;cursor:pointer;background:#fff;color:#1d1a17}
+.cta button.g{background:rgba(255,255,255,.22);color:#fff;flex:0 0 auto}
+.cta button:active,.cc button:active{transform:scale(.97)}
+.wxc{background:var(--bl);border-radius:var(--r);padding:20px}
+.wxc .t{font-size:1.15rem;font-weight:500}
+.wx{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;text-align:center}
+.wx div{background:rgba(255,255,255,.55);border-radius:16px;padding:10px 2px;font-size:.9rem;border:3px solid transparent}
+.wx div.today{border-color:#fff;background:#fff}
+.wx span{display:block;font-size:1.7rem}
+.alert{display:none;background:#fde3e0;color:#b3261e;border-radius:20px;padding:16px 20px;margin-bottom:14px;font-weight:500}
+.alert.show{display:block}
+.tl{background:var(--cream);border-radius:var(--r);padding:18px 20px}
+.tn{display:flex;align-items:center;justify-content:space-between;margin:4px 0 6px}
+.tn button{border:0;background:#fff;border-radius:50%;width:46px;height:46px;font-size:1.3rem;color:var(--o);cursor:pointer}
+.tn button:disabled{opacity:.35;cursor:default}
+.tn b{font-weight:500;font-size:1.15rem;text-transform:capitalize}
+.sum{text-align:center;font-size:.95rem;color:var(--mu);margin-bottom:10px}
+.sum strong{color:var(--o);font-size:1.5rem;font-weight:600}
+.ch{display:flex;align-items:flex-end;gap:4px;height:170px;border-bottom:2px solid #e6d9cf;padding-top:18px}
+.col{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;min-width:0}
+.col i{display:block;width:100%;max-width:46px;background:#ffc4a8;border-radius:10px 10px 4px 4px;min-height:4px}
+.col.cur i{background:var(--o)}
+.col small{font-size:.72rem;color:var(--mu);height:16px}
+.lb{display:flex;gap:4px;margin-top:6px}
+.lb span{flex:1;text-align:center;font-size:.75rem;color:var(--mu);min-width:0;overflow:hidden}
+.lb span.cur{color:var(--o);font-weight:600}
+.list{background:var(--cream);border-radius:var(--r);padding:6px 20px}
+.li{display:flex;align-items:center;gap:14px;padding:16px 0;border-bottom:1px solid #e6d9cf}
+.li:last-child{border:0}
+.li .n{font-size:1.3rem;width:34px;color:var(--mu)}
+.li .w{flex:1}.li .w b{display:block;color:var(--o);font-weight:500;font-size:1.15rem}
+.li .w span{font-size:.9rem;color:var(--mu)}
+.up{color:#d32f2f}.dn{color:#2e9e3e}.eq{color:var(--mu)}
+.cl{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.cc{border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:4px;min-height:150px}
+.cc .e{font-size:2.2rem}
+.cc b{font-size:1.2rem;font-weight:500}
+.cc span{font-size:.9rem}
+.cc button{margin-top:auto;align-self:flex-start;border:0;background:var(--o);color:#fff;font:inherit;font-weight:500;padding:11px 20px;border-radius:14px;cursor:pointer}
+.set{background:var(--cream);border-radius:var(--r);padding:20px}
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:12px}
+label{display:flex;flex-direction:column;font-size:.85rem;color:var(--mu);gap:4px}
+input{font:inherit;padding:11px;border:2px solid #fff;border-radius:14px;width:130px;background:#fff}
+.sb{border:0;background:var(--o);color:#fff;font:inherit;font-weight:500;padding:13px 20px;border-radius:14px;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid var(--tx);outline-offset:2px}
+@media(max-width:720px){.top,.cl{grid-template-columns:1fr}}
+</style>
+</head>
+<body data-theme="classique">
+<div class="wrap">
+  <div class="bar">
+    <div><h1>Mon Pellet</h1><div class="sub">Stock de la saison</div></div>
+    <div class="badge">🔥 <span id="rest">0</span> sacs</div>
+  </div>
+  <div class="alert" id="alert" role="alert"></div>
+
+  <div class="top">
+    <section class="hero">
+      <div class="t">Mes pellets</div>
+      <div class="big"><span id="auto">–</span> jours</div>
+      <div class="t">d’autonomie restante</div>
+      <div class="gauge"><i id="gf"></i></div>
+      <div id="end" style="opacity:.9;font-size:.95rem"></div>
+      <div class="cta">
+        <button id="add">+1 sac dans le poêle</button>
+        <button class="g" id="undo">Annuler</button>
+      </div>
+      <div id="today" style="margin-top:12px;opacity:.9;font-size:.95rem"></div>
+    </section>
+    <section class="wxc" aria-live="polite">
+      <div class="t">Météo · <span id="city">Aire-sur-la-Lys</span></div>
+      <div class="wx" id="wx"><div>Chargement…</div></div>
+      <div id="trend" style="margin-top:12px;font-size:.95rem"></div>
+    </section>
+  </div>
+
+  <h2>Bilans</h2>
+  <div class="tl">
+    <div class="tabs" id="per" role="tablist" style="max-width:none">
+      <button class="on" data-p="w" role="tab">Semaine</button>
+      <button data-p="m" role="tab">Mois</button>
+      <button data-p="y" role="tab">Année</button>
+    </div>
+    <div class="tn"><button id="prev" aria-label="Période précédente">‹</button><b id="ttl"></b><button id="next" aria-label="Période suivante">›</button></div>
+    <div class="sum" id="sum"></div>
+    <div class="ch" id="ch"></div>
+    <div class="lb" id="lb"></div>
+  </div>
+
+  <h2>Nettoyage</h2>
+  <div class="cl" id="cl"></div>
+
+  <h2>Réglages du stock</h2>
+  <div class="set">
+    <div class="row">
+      <label>Sacs achetés (saison)<input type="number" id="iBuy" min="0"></label>
+      <label>Prix du sac (€)<input type="number" id="iPrice" min="0" step="0.1"></label>
+      <label>Sacs brûlés par an<input type="number" id="iAnn" min="1"></label>
+      <button class="sb" id="save">Enregistrer</button>
+    </div>
+    <div class="row" style="margin:0">
+      <label>Ajouter des sacs achetés<input type="number" id="iMore" min="1" placeholder="ex : 10"></label>
+      <button class="sb" id="more">Ajouter au stock</button>
+    </div>
+    <div class="row" style="margin:14px 0 0">
+      <button class="sb" id="exp">Exporter mes données</button>
+      <button class="sb" id="imp" style="background:#fff;color:var(--o)">Importer une sauvegarde</button>
+      <input type="file" id="file" accept=".json,application/json" hidden>
+    </div>
+    <div id="msg" class="sub" style="margin-top:8px;color:var(--mu)" role="status"></div>
+  </div>
+</div>
+
+<script>
+const K='monpellet_v1';
+const def={bought:66,price:6,annual:80,theme:'classique',log:[],clean:[]};
+let S;
+try{S=Object.assign({},def,JSON.parse(localStorage.getItem(K)||'{}'))}catch(e){S={...def}}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=id=>document.getElementById(id);
+const DAY=864e5;
+const eur=n=>n.toLocaleString('fr-FR',{style:'currency',currency:'EUR'});
+const CLEAN=[['Ramonage','Conduit et poêle','🧹','var(--pk)'],['Démontage du poêle','Démontage complet','🔧','var(--bl)'],['Nettoyage complet + vitre','Poêle entier et vitre','✨','var(--gr)'],['Vitre','Vitre seule','🪟','var(--ye)']];
+
+function since(k){
+  const d=new Date();d.setHours(0,0,0,0);
+  if(k==='w')d.setDate(d.getDate()-((d.getDay()+6)%7));
+  if(k==='m')d.setDate(1);
+  if(k==='y')d.setMonth(0,1);
+  return d.getTime();
+}
+function render(){
+  const rest=Math.max(0,S.bought-S.log.length);
+  $('rest').textContent=rest;
+  $('gf').style.width=(S.bought?rest/S.bought*100:0)+'%';
+  const days=Math.floor(rest/(S.annual/365));
+  $('auto').textContent=days;
+  $('end').textContent=rest?rest+' sacs sur '+S.bought+' · fin estimée le '+new Date(Date.now()+days*DAY).toLocaleDateString('fr-FR',{day:'numeric',month:'long'}):'Stock épuisé';
+  const td=new Date();td.setHours(0,0,0,0);
+  const today=S.log.filter(t=>t>=td.getTime()).length;
+  $('today').textContent=today+' sac'+(today>1?'s':'')+' brûlé'+(today>1?'s':'')+' aujourd’hui';
+  tl();
+  $('cl').innerHTML=CLEAN.map(([n,d,e,c],i)=>{
+    const last=[...S.clean].reverse().find(x=>x.t===n);
+    const s=last?'Fait le '+new Date(last.d).toLocaleDateString('fr-FR',{day:'numeric',month:'short'}):'Jamais enregistré';
+    return `<div class="cc" style="background:${c}"><div class="e">${e}</div><b>${n}</b><span>${d} · ${s}</span><button data-i="${i}">C’est fait</button></div>`}).join('');
+  document.querySelectorAll('.cc button').forEach(b=>b.onclick=()=>{S.clean.push({t:CLEAN[b.dataset.i][0],d:Date.now()});save();render()});
+  $('iBuy').value=S.bought;$('iPrice').value=S.price;$('iAnn').value=S.annual;
+  checkAlert();
+}
+function checkAlert(){
+  const a=$('alert');
+  if(!S.clean.length){a.textContent='Aucun nettoyage enregistré. Pense à nettoyer ton poêle.';a.classList.add('show');return}
+  const n=Math.floor((Date.now()-Math.max(...S.clean.map(c=>c.d)))/DAY);
+  if(n>=4){a.textContent='Poêle non nettoyé depuis '+n+' jours. Il est temps de le nettoyer.';a.classList.add('show')}
+  else a.classList.remove('show');
+}
+$('add').onclick=()=>{S.log.push(Date.now());save();render()};
+$('undo').onclick=()=>{S.log.pop();save();render()};
+$('save').onclick=()=>{S.bought=Math.max(0,+$('iBuy').value||0);S.price=Math.max(0,+$('iPrice').value||0);S.annual=Math.max(1,+$('iAnn').value||80);save();render()};
+$('more').onclick=()=>{const n=+$('iMore').value;if(n>0){S.bought+=n;$('iMore').value='';save();render()}};
+$('exp').onclick=()=>{
+  const blob=new Blob([JSON.stringify({app:'mon-pellet',date:new Date().toISOString(),data:S},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='mon-pellet-sauvegarde-'+new Date().toISOString().slice(0,10)+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  $('msg').textContent='Sauvegarde exportée : '+S.log.length+' sacs brûlés et '+S.clean.length+' nettoyages.';
+};
+$('imp').onclick=()=>$('file').click();
+$('file').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{try{
+    const j=JSON.parse(r.result),d=j.data||j;
+    if(!Array.isArray(d.log)||!Array.isArray(d.clean))throw 0;
+    if(!confirm('Remplacer les données actuelles par cette sauvegarde ?'))return;
+    S=Object.assign({},def,d);save();render();$('msg').textContent='Sauvegarde importée.';
+  }catch(x){$('msg').textContent='Fichier invalide : choisis une sauvegarde Mon Pellet (.json).'}};
+  r.readAsText(f);e.target.value='';
+};
+let per='w',off=0;
+document.querySelectorAll('#per button').forEach(b=>b.onclick=()=>{per=b.dataset.p;off=0;document.querySelectorAll('#per button').forEach(x=>x.classList.toggle('on',x===b));tl()});
+$('prev').onclick=()=>{off--;tl()};
+$('next').onclick=()=>{if(off<0){off++;tl()}};
+const cnt=(a,b)=>S.log.filter(t=>t>=+a&&t<+b).length;
+const fmt=d=>d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'});
+function tl(){
+  const now=new Date();now.setHours(0,0,0,0);
+  let lab=[],c=[],cur=-1,title,exp;
+  if(per==='w'){
+    const s=new Date(now);s.setDate(s.getDate()-((s.getDay()+6)%7)+off*7);
+    for(let i=0;i<7;i++){const a=new Date(s);a.setDate(s.getDate()+i);const b=new Date(a);b.setDate(a.getDate()+1);c.push(cnt(a,b));lab.push(a.toLocaleDateString('fr-FR',{weekday:'short'}));if(+a===+now)cur=i}
+    const e=new Date(s);e.setDate(s.getDate()+6);title='Du '+fmt(s)+' au '+fmt(e);exp=S.annual/52;
+  }else if(per==='m'){
+    const f=new Date(now.getFullYear(),now.getMonth()+off,1),y=f.getFullYear(),m=f.getMonth(),n=new Date(y,m+1,0).getDate();
+    for(let i=0;i<n;i++){const a=new Date(y,m,i+1);c.push(cnt(a,new Date(y,m,i+2)));lab.push(i%5===0||i===n-1?i+1:'');if(+a===+now)cur=i}
+    title=f.toLocaleDateString('fr-FR',{month:'long',year:'numeric'});exp=S.annual/365*n;
+  }else{
+    const y=now.getFullYear()+off;
+    for(let m=0;m<12;m++){c.push(cnt(new Date(y,m,1),new Date(y,m+1,1)));lab.push(new Date(y,m,1).toLocaleDateString('fr-FR',{month:'short'}).replace('.',''));if(y===now.getFullYear()&&m===now.getMonth())cur=m}
+    title=String(y);exp=S.annual;
+  }
+  const tot=c.reduce((a,b)=>a+b,0),mx=Math.max(1,...c);
+  $('ttl').textContent=title;$('next').disabled=off>=0;
+  $('sum').innerHTML=`<strong>${tot} sac${tot>1?'s':''}</strong> · ${eur(tot*S.price)}<br>moyenne attendue : ${exp.toFixed(1).replace('.',',')} sacs`;
+  $('ch').innerHTML=c.map((v,i)=>`<div class="col${i===cur?' cur':''}"><small>${v||''}</small><i style="height:${v/mx*100}%"></i></div>`).join('');
+  $('lb').innerHTML=lab.map((l,i)=>`<span class="${i===cur?'cur':''}">${l}</span>`).join('');
+}
+setInterval(checkAlert,36e5);
+
+const AIRE={lat:50.6385,lon:2.3965};
+const ico=c=>c===0?'☀️':c<3?'⛅':c<4?'☁️':c<50?'🌫️':c<68?'🌧️':c<78?'❄️':c<83?'🌦️':c<87?'🌨️':'⛈️';
+function loadWx(lat,lon,geo){
+  fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=weather_code,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3`)
+  .then(r=>r.json()).then(j=>{
+    const d=j.daily;$('city').textContent=geo?'ma position':'Aire-sur-la-Lys';
+    $('wx').innerHTML=d.time.map((t,i)=>`<div class="${i?'':'today'}">${i?new Date(t).toLocaleDateString('fr-FR',{weekday:'short'}):'Auj.'}<span>${ico(d.weather_code[i])}</span>${Math.round(d.temperature_2m_max[i])}° / ${Math.round(d.temperature_2m_min[i])}°</div>`).join('');
+    const avg=d.temperature_2m_max.reduce((a,b)=>a+b,0)/3;
+    $('trend').textContent=avg<7?'Tendance : froid, le poêle va beaucoup tourner.':avg<14?'Tendance : frais, consommation normale.':'Tendance : doux, consommation faible.';
+  }).catch(()=>{$('wx').innerHTML='<div style="grid-column:1/4">Météo indisponible (hors ligne)</div>'});
+}
+if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>loadWx(p.coords.latitude,p.coords.longitude,true),()=>loadWx(AIRE.lat,AIRE.lon,false),{timeout:6000});
+else loadWx(AIRE.lat,AIRE.lon,false);
+render();
+</script>
+</body>
+</html>
